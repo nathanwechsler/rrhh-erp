@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Chef · RRHH</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FE5E19'/%3E%3Ctext x='32' y='28' font-family='Arial' font-size='20' font-weight='700' fill='white' text-anchor='middle'%3ERR%3C/text%3E%3Ctext x='32' y='50' font-family='Arial' font-size='20' font-weight='700' fill='white' text-anchor='middle'%3EHH%3C/text%3E%3C/svg%3E">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --orange: #FE5E19;
+    --orange-light: #fff0eb;
+    --gray: #DCDCDC;
+    --gray-dark: #6b7280;
+    --gray-mid: #f3f4f6;
+    --white: #ffffff;
+    --text: #1a1a1a;
+    --green: #16a34a; --green-bg: #dcfce7;
+    --blue: #2563eb; --blue-bg: #dbeafe;
+    --yellow: #d97706; --yellow-bg: #fef3c7;
+    --purple: #7c3aed; --purple-bg: #ede9fe;
+    --muted: #6b7280; --muted-bg: #f3f4f6;
+    --red: #dc2626; --red-bg: #fee2e2;
+    --radius: 10px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  body { font-family: 'Inter', sans-serif; background: #f7f7f7; color: var(--text); min-height: 100vh; }
+  .hidden { display: none !important; }
+
+  /* ---------- LOGIN ---------- */
+  #loginScreen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #fff 0%, var(--orange-light) 100%);
+  }
+  .login-card {
+    background: var(--white); border-radius: 16px; box-shadow: var(--shadow);
+    padding: 44px 40px; width: 100%; max-width: 360px; text-align: center;
+  }
+  .login-logo {
+    width: 56px; height: 56px; border-radius: 14px; overflow: hidden;
+    margin: 0 auto 18px;
+  }
+  .login-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .login-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .login-title span { color: var(--orange); }
+  .login-sub { font-size: 12px; color: var(--gray-dark); margin-bottom: 26px; }
+  .gsi-wrap { display: flex; justify-content: center; }
+  .login-note { font-size: 11px; color: var(--gray-dark); margin-top: 18px; }
+  .login-error { font-size: 12px; color: var(--red); margin-top: 14px; display: none; }
+
+  /* ---------- HEADER ---------- */
+  .header {
+    background: var(--white); border-bottom: 3px solid var(--orange);
+    padding: 0 28px; display: flex; align-items: center; justify-content: space-between;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-box {
+    width: 36px; height: 36px; background: var(--orange);
+    border-radius: 9px; display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 13px;
+  }
+  .brand { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+  .brand span { color: var(--orange); }
+  .subtitle { font-size: 11px; color: var(--gray-dark); }
+  .header-right { display: flex; align-items: center; gap: 24px; }
+  .header-stats { display: flex; gap: 20px; }
+  .hstat-val { font-size: 20px; font-weight: 700; color: var(--orange); line-height: 1; text-align: right; }
+  .hstat-lbl { font-size: 10px; color: var(--gray-dark); text-transform: uppercase; letter-spacing: 0.5px; text-align: right; }
+  .user-box { display: flex; align-items: center; gap: 10px; }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+    background: var(--orange); color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; overflow: hidden;
+  }
+  .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .user-name { font-size: 12px; font-weight: 600; }
+  .logout-btn {
+    background: none; border: none; color: var(--gray-dark); cursor: pointer;
+    font-size: 11px; text-decoration: underline; font-family: inherit;
+  }
+
+  /* ---------- MAIN ---------- */
+  .main { padding: 24px 28px; max-width: 1100px; margin: 0 auto; }
+
+  .design-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; color: var(--orange); background: var(--orange-light);
+    padding: 6px 12px; border-radius: 20px; margin-bottom: 14px;
+  }
+
+  .toolbar { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--orange); color: white; border: none;
+    padding: 9px 18px; border-radius: var(--radius);
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+  .btn-secondary {
+    background: var(--white); color: var(--text); border: 1px solid var(--gray);
+    padding: 9px 16px; border-radius: var(--radius);
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .btn-secondary:hover { background: var(--gray-mid); }
+  .btn-ghost-red {
+    background: none; border: 1px solid var(--red); color: var(--red);
+    padding: 7px 14px; border-radius: var(--radius); font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  .btn-ghost-red:hover { background: var(--red-bg); }
+
+  .search-input {
+    flex: 1; min-width: 180px; padding: 9px 14px; border: 1px solid var(--gray);
+    border-radius: var(--radius); font-family: 'Inter', sans-serif; font-size: 13px;
+  }
+  .search-input:focus { outline: none; border-color: var(--orange); }
+
+  .filter-pills { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .pill {
+    padding: 7px 14px; border-radius: 20px; border: 1px solid var(--gray);
+    background: white; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--gray-dark);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .pill.active { background: var(--text); color: white; border-color: var(--text); }
+  .pill .count { font-weight: 700; }
+
+  /* ---------- CARD ROWS (LIST VIEW) ---------- */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--gray-dark);
+    background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+  }
+  .colab-card {
+    background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 12px; overflow: hidden; border-left: 4px solid var(--gray); cursor: pointer;
+  }
+  .colab-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+  .colab-card.activo { border-left-color: var(--green); }
+  .colab-card.vacaciones { border-left-color: var(--blue); }
+  .colab-card.licencia { border-left-color: var(--yellow); }
+
+  .colab-row {
+    display: grid;
+    grid-template-columns: 40px 1.8fr 110px 130px 150px 32px 24px;
+    align-items: center; gap: 14px; padding: 14px 18px;
+  }
+  .colab-avatar {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--orange-light);
+    color: var(--orange); display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .colab-name { font-size: 14px; font-weight: 700; }
+  .colab-email { font-size: 11px; color: var(--gray-dark); margin-top: 2px; }
+  .colab-fecha { font-size: 12px; color: var(--gray-dark); }
+  .colab-saldo { text-align: center; }
+  .colab-saldo-val { font-size: 15px; font-weight: 700; color: var(--orange); }
+  .colab-saldo-lbl { font-size: 9px; color: var(--gray-dark); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .estado-select {
+    appearance: none; -webkit-appearance: none; border: none; border-radius: 20px;
+    padding: 5px 26px 5px 12px; font-size: 11px; font-weight: 700; cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    background-repeat: no-repeat; background-position: right 8px center; background-size: 9px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23000' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+  .estado-select.activo { background-color: var(--green-bg); color: var(--green); }
+  .estado-select.vacaciones { background-color: var(--blue-bg); color: var(--blue); }
+  .estado-select.licencia { background-color: var(--yellow-bg); color: var(--yellow); }
+
+  .icon-btn {
+    background: none; border: none; cursor: pointer; font-size: 14px; color: var(--gray-dark);
+    width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { background: var(--gray-mid); }
+  .row-arrow { color: var(--gray-dark); font-size: 18px; text-align: center; transition: transform 0.15s; }
+  .colab-card:hover .row-arrow { transform: translateX(3px); color: var(--orange); }
+
+  /* ---------- FIELDS (reusable: modal + profile) ---------- */
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--gray-dark); font-weight: 600;
+  }
+  .field input, .field select {
+    border: 1px solid var(--gray); border-radius: 8px; padding: 8px 10px;
+    font-family: 'Inter', sans-serif; font-size: 13px; background: white; color: var(--text);
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--orange); }
+  .field-static {
+    font-size: 13px; color: var(--text); padding: 8px 10px;
+    background: var(--gray-mid); border-radius: 8px; border: 1px solid transparent;
+  }
+  .field.wide { grid-column: span 2; }
+
+  /* ---------- MODAL ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+  }
+  .modal {
+    background: white; border-radius: 14px; width: 100%; max-width: 460px;
+    max-height: 88vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding: 18px 22px; border-bottom: 1px solid var(--gray-mid);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-header h3 { font-size: 15px; font-weight: 700; }
+  .modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--gray-dark); }
+  .modal-body { padding: 20px 22px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-footer {
+    padding: 16px 22px; border-top: 1px solid var(--gray-mid);
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+
+  /* ---------- PROFILE VIEW ---------- */
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 6px; background: none; border: none;
+    color: var(--gray-dark); font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px;
+    font-family: 'Inter', sans-serif; padding: 0;
+  }
+  .back-btn:hover { color: var(--text); }
+
+  .profile-summary {
+    background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 22px; margin-bottom: 22px;
+  }
+  .profile-top { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; flex-wrap: wrap; }
+  .profile-avatar {
+    width: 60px; height: 60px; border-radius: 50%; background: var(--orange-light); color: var(--orange);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; flex-shrink: 0;
+  }
+  .profile-name { font-size: 19px; font-weight: 700; }
+  .profile-sub { font-size: 12px; color: var(--gray-dark); margin-top: 3px; }
+  .profile-saldo-box {
+    margin-left: auto; text-align: center; background: var(--orange-light); border-radius: var(--radius);
+    padding: 10px 22px;
+  }
+  .profile-saldo-val { font-size: 24px; font-weight: 700; color: var(--orange); line-height: 1; }
+  .profile-saldo-lbl { font-size: 10px; color: var(--orange); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; font-weight: 600; }
+  .profile-fields-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+  .profile-actions { display: flex; justify-content: flex-end; }
+
+  .historial-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .historial-title { font-size: 15px; font-weight: 700; }
+
+  .evento-form { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 18px; }
+  .evento-form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .evento-form-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+
+  .dias-picker { margin-top: 14px; background: var(--gray-mid); border-radius: 8px; padding: 12px 16px; }
+  .dias-picker-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--gray-dark); margin-bottom: 8px; }
+  .dias-picker-item { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; }
+  .dias-picker-item input { cursor: pointer; }
+  .dias-count { font-size: 13px; font-weight: 700; color: var(--orange); margin-top: 10px; }
+
+  .evento-list { display: flex; flex-direction: column; gap: 10px; }
+  .evento-item {
+    background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  }
+  .evento-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .evento-badge.vacaciones { background: var(--blue-bg); color: var(--blue); }
+  .evento-badge.licencia { background: var(--yellow-bg); color: var(--yellow); }
+  .evento-badge.permiso { background: var(--green-bg); color: var(--green); }
+  .evento-badge.permisoSinGoce { background: var(--purple-bg); color: var(--purple); }
+  .evento-info { flex: 1; min-width: 180px; }
+  .evento-fechas { font-size: 13px; font-weight: 600; }
+  .evento-dias { font-size: 11px; color: var(--gray-dark); margin-top: 2px; }
+  .evento-notas { font-size: 11px; color: var(--gray-dark); font-style: italic; margin-top: 2px; }
+  .evento-autor { font-size: 11px; color: var(--gray-dark); background: var(--gray-mid); padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+
+  @media (max-width: 720px) {
+    .header-stats { display: none; }
+    .colab-row { grid-template-columns: 36px 1fr 90px 28px 18px; gap: 8px; }
+    .colab-fecha, .colab-saldo { display: none; }
+    .modal-grid { grid-template-columns: 1fr; }
+    .modal-grid .field.wide { grid-column: span 1; }
+    .profile-fields-grid { grid-template-columns: 1fr 1fr; }
+    .profile-saldo-box { margin-left: 0; }
+    .evento-form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo"><img src="data:image/png;base64,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" alt="Prime Chef"></div>
+    <div class="login-title">Prime Chef · <span>RRHH</span></div>
+    <div class="login-sub">Gestión de colaboradores</div>
+    <div class="gsi-wrap" id="gsiButton"></div>
+    <div class="login-error" id="loginError">Tu cuenta no pertenece al dominio @primechef.cl</div>
+    <div class="login-note">Acceso restringido a cuentas @primechef.cl</div>
+  </div>
+</div>
+
+<!-- ==================== APP ==================== -->
+<div id="app" class="hidden">
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-box"><img src="data:image/png;base64,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" alt="Prime Chef" style="width:100%;height:100%;object-fit:cover;border-radius:9px;display:block;"></div>
+      <div>
+        <div class="brand">Prime Chef · <span>RRHH</span></div>
+        <div class="subtitle">Gestión de colaboradores</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-stats" id="headerStats"></div>
+      <div class="user-box">
+        <div class="user-avatar" id="userAvatar"></div>
+        <div class="user-name" id="userName"></div>
+        <button class="logout-btn" onclick="logout()">Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="dataModeNotice"></div>
+    <div id="viewContainer"></div>
+  </div>
+</div>
+
+<!-- ==================== MODAL NUEVO COLABORADOR ==================== -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nuevo colaborador</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-grid">
+        <div class="field"><label>Nombre *</label><input id="m_nombre" type="text" placeholder="Nombre"></div>
+        <div class="field"><label>Apellido *</label><input id="m_apellido" type="text" placeholder="Apellido"></div>
+        <div class="field"><label>Correo</label><input id="m_email" type="email" placeholder="correo@primechef.cl"></div>
+        <div class="field"><label>Teléfono</label><input id="m_telefono" type="text" placeholder="+56 9 1234 5678"></div>
+        <div class="field"><label>Fecha de ingreso *</label><input id="m_fechaIngreso" type="date"></div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="m_estado">
+            <option value="activo">Activo</option>
+            <option value="vacaciones">Vacaciones</option>
+            <option value="licencia">Licencia médica</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="crearColaborador()">Guardar colaborador</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL CONFIRMAR ELIMINACIÓN ==================== -->
+<div class="modal-overlay hidden" id="confirmModalOverlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <h3>Confirmar eliminación</h3>
+      <button class="modal-close" onclick="closeConfirmModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmModalMessage" style="font-size:13px;color:var(--text);line-height:1.5;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeConfirmModal()">Cancelar</button>
+      <button class="btn-ghost-red" onclick="confirmModalAction()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const CONFIG = {
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby37VOkbDuELLj7jRHaf6DXm9r9exxnMRKT-SWNcBlfZXtxJ5LlYhOUYOSPf7jsAsD2/exec',
+  GOOGLE_CLIENT_ID: '936332776898-p8qvua046g12dcvppg114mfqar0ngovf.apps.googleusercontent.com',
+  ALLOWED_DOMAIN: 'primechef.cl'
+};
+
+const ESTADOS = {
+  activo: 'Activo',
+  vacaciones: 'Vacaciones',
+  licencia: 'Licencia médica'
+};
+
+const EVENTO_TIPOS = {
+  vacaciones: 'Vacaciones',
+  permiso: 'Permiso',
+  permisoSinGoce: 'Permiso sin goce',
+  licencia: 'Licencia médica'
+};
+
+const AUTORIZADORES = {
+  NW: 'Nathan Wechsler',
+  BW: 'Benjamín Wechsler'
+};
+
+const DIAS_POR_MES = 1.25;
+
+// ==================== STATE ====================
+let colaboradores = [];
+let currentUser = null;
+let expandedIds = new Set();
+let filterEstado = 'todos';
+let searchQuery = '';
+let usingMockData = false;
+let pendingConfirmAction = null;
+
+let currentView = 'list'; // 'list' | 'profile'
+let perfilColabId = null;
+let showEventoForm = false;
+let eventoDraft = null; // { tipo, fechaInicio, fechaFin, autorizadoPor, notas }
+let eventoFeriados = new Set(); // fechas ISO marcadas como feriado dentro del rango elegido
+
+// ==================== DATOS DE EJEMPLO ====================
+const MOCK_COLABORADORES = [
+  { id: 'mock_1', nombre: 'Camila', apellido: 'Rojas', email: 'camila.rojas@primechef.cl', telefono: '+56 9 1234 5678',
+    fechaIngreso: '2022-03-14', estado: 'activo',
+    eventos: [
+      { id: 'ev_1', tipo: 'vacaciones', fechaInicio: '2026-01-05', fechaFin: '2026-01-09', diasHabiles: 5, autorizadoPor: 'NW', notas: '', creadoEn: '2025-12-20T12:00:00.000Z' }
+    ] },
+  { id: 'mock_2', nombre: 'Diego', apellido: 'Fernández', email: 'diego.fernandez@primechef.cl', telefono: '+56 9 2233 4455',
+    fechaIngreso: '2023-06-01', estado: 'activo', eventos: [] },
+  { id: 'mock_3', nombre: 'Javiera', apellido: 'Soto', email: 'javiera.soto@primechef.cl', telefono: '+56 9 3344 5566',
+    fechaIngreso: '2021-11-02', estado: 'vacaciones',
+    eventos: [
+      { id: 'ev_2', tipo: 'vacaciones', fechaInicio: '2026-07-06', fechaFin: '2026-07-17', diasHabiles: 10, autorizadoPor: 'BW', notas: 'Vacaciones de invierno', creadoEn: '2026-06-15T12:00:00.000Z' }
+    ] },
+  { id: 'mock_4', nombre: 'Tomás', apellido: 'Bravo', email: 'tomas.bravo@primechef.cl', telefono: '+56 9 4455 6677',
+    fechaIngreso: '2024-01-15', estado: 'activo', eventos: [] },
+  { id: 'mock_5', nombre: 'Francisca', apellido: 'Muñoz', email: 'francisca.munoz@primechef.cl', telefono: '+56 9 5566 1122',
+    fechaIngreso: '2020-08-20', estado: 'licencia',
+    eventos: [
+      { id: 'ev_3', tipo: 'licencia', fechaInicio: '2026-06-20', fechaFin: '2026-07-10', diasHabiles: null, autorizadoPor: 'NW', notas: 'Reposo médico', creadoEn: '2026-06-19T12:00:00.000Z' }
+    ] }
+];
+
+// ==================== AUTH (Google Identity Services) ====================
+window.onload = function () {
+  google.accounts.id.initialize({
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    callback: handleCredentialResponse,
+    auto_select: true
+  });
+  google.accounts.id.renderButton(document.getElementById('gsiButton'), {
+    theme: 'outline', size: 'large', text: 'signin_with', shape: 'pill'
+  });
+  google.accounts.id.prompt(); // intenta re-loguear automáticamente si ya hay sesión de Google activa
+};
+
+function parseJwt(token) {
+  const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+  const json = decodeURIComponent(atob(base64).split('').map(function (c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+  return JSON.parse(json);
+}
+
+function handleCredentialResponse(response) {
+  const payload = parseJwt(response.credential);
+  const email = payload.email || '';
+  const domain = email.split('@')[1] || '';
+
+  if (domain !== CONFIG.ALLOWED_DOMAIN) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+
+  currentUser = { name: payload.name, email: email, picture: payload.picture };
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  renderUserBox();
+  loadColaboradores();
+}
+
+function logout() {
+  currentUser = null;
+  google.accounts.id.disableAutoSelect();
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+function renderUserBox() {
+  document.getElementById('userName').textContent = currentUser.name;
+  const avatarEl = document.getElementById('userAvatar');
+  const fallback = userInitials(currentUser.name);
+  avatarEl.innerHTML = currentUser.picture
+    ? '<img src="' + currentUser.picture + '" alt="" onerror="this.parentNode.textContent=\'' + fallback + '\'">'
+    : fallback;
+}
+
+function userInitials(fullName) {
+  if (!fullName) return '?';
+  return fullName.trim().split(/\s+/).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase();
+}
+
+function initials(name, apellido) {
+  const a = (name || '?')[0] || '?';
+  const b = (apellido || '')[0] || '';
+  return (a + b).toUpperCase();
+}
+
+// ==================== API ====================
+function backendConfigurado() {
+  return CONFIG.APPS_SCRIPT_URL && CONFIG.APPS_SCRIPT_URL.indexOf('PON_AQUI') === -1;
+}
+
+async function apiGet(action) {
+  const res = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=' + action);
+  return res.json();
+}
+
+async function apiPost(action, payload) {
+  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(Object.assign({ action: action }, payload))
+  });
+  return res.json();
+}
+
+async function loadColaboradores() {
+  if (!backendConfigurado()) {
+    colaboradores = JSON.parse(JSON.stringify(MOCK_COLABORADORES));
+    usingMockData = true;
+    renderApp();
+    return;
+  }
+  try {
+    const result = await apiGet('get_colaboradores');
+    colaboradores = (result && result.data) || [];
+    usingMockData = false;
+  } catch (err) {
+    console.error('Error cargando colaboradores, usando datos de ejemplo', err);
+    colaboradores = JSON.parse(JSON.stringify(MOCK_COLABORADORES));
+    usingMockData = true;
+  }
+  renderApp();
+}
+
+function renderDataModeNotice() {
+  const el = document.getElementById('dataModeNotice');
+  el.innerHTML = usingMockData
+    ? '<span class="design-badge">🎨 Datos de ejemplo — edita CONFIG.APPS_SCRIPT_URL en el &lt;script&gt; para conectar tu Google Sheet</span>'
+    : '';
+}
+
+async function saveColaborador(colab) {
+  if (usingMockData) return;
+  await apiPost('save_colaborador', { colaborador: colab });
+}
+
+async function deleteColaboradorRemote(id) {
+  if (usingMockData) return;
+  await apiPost('delete_colaborador', { id: id });
+}
+
+// ==================== FECHAS / CÁLCULO DE VACACIONES ====================
+function todayISO() {
+  return isoDate(new Date());
+}
+function isoDate(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function diasEnMes(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+
+// 1.25 días por mes trabajado, prorrateado por día calendario en meses parciales
+// (el mes de ingreso y el mes en curso se calculan proporcionalmente).
+function diasGanados(colab, hastaISO) {
+  if (!colab.fechaIngreso) return 0;
+  const start = new Date(colab.fechaIngreso + 'T00:00:00');
+  const end = new Date((hastaISO || todayISO()) + 'T00:00:00');
+  if (end < start) return 0;
+
+  let total = 0;
+  let year = start.getFullYear();
+  let month = start.getMonth();
+  const endYear = end.getFullYear();
+  const endMonth = end.getMonth();
+
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    const totalDiasMes = diasEnMes(year, month);
+    const monthStart = new Date(year, month, 1);
+    const monthEnd = new Date(year, month, totalDiasMes);
+    const efectivoInicio = monthStart < start ? start : monthStart;
+    const efectivoFin = monthEnd > end ? end : monthEnd;
+    if (efectivoInicio <= efectivoFin) {
+      const diasTrabajados = Math.round((efectivoFin - efectivoInicio) / 86400000) + 1;
+      total += (diasTrabajados / totalDiasMes) * DIAS_POR_MES;
+    }
+    month++;
+    if (month > 11) { month = 0; year++; }
+  }
+  return total;
+}
+
+function diasTomados(colab) {
+  return (colab.eventos || [])
+    .filter(function (e) { return e.tipo === 'vacaciones' && typeof e.diasHabiles === 'number'; })
+    .reduce(function (sum, e) { return sum + e.diasHabiles; }, 0);
+}
+
+function saldoVacaciones(colab) {
+  return diasGanados(colab) - diasTomados(colab);
+}
+
+function fmtDias(n) {
+  return (Math.round(n * 10) / 10).toString().replace('.', ',') + ' días';
+}
+
+function weekdaysInRange(inicioISO, finISO) {
+  if (!inicioISO || !finISO) return [];
+  let cursor = new Date(inicioISO + 'T00:00:00');
+  const fin = new Date(finISO + 'T00:00:00');
+  const out = [];
+  if (fin < cursor) return out;
+  while (cursor <= fin) {
+    const dow = cursor.getDay();
+    if (dow !== 0 && dow !== 6) out.push(isoDate(cursor));
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+  }
+  return out;
+}
+
+function fmtDateShort(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// ==================== RENDER: SHELL ====================
+function renderApp() {
+  renderDataModeNotice();
+  renderHeaderStats();
+  if (currentView === 'profile' && perfilColabId) {
+    renderProfileView();
+  } else {
+    renderListView();
+  }
+}
+
+function renderHeaderStats() {
+  const total = colaboradores.length;
+  const counts = countByEstado();
+  document.getElementById('headerStats').innerHTML = [
+    stat(total, 'Total'),
+    stat(counts.activo || 0, 'Activos'),
+    stat(counts.vacaciones || 0, 'Vacaciones'),
+    stat(counts.licencia || 0, 'Licencia')
+  ].join('');
+}
+function stat(val, lbl) {
+  return '<div><div class="hstat-val">' + val + '</div><div class="hstat-lbl">' + lbl + '</div></div>';
+}
+function countByEstado() {
+  const counts = {};
+  colaboradores.forEach(function (c) { counts[c.estado] = (counts[c.estado] || 0) + 1; });
+  return counts;
+}
+
+// ==================== RENDER: LIST VIEW ====================
+function renderListView() {
+  const html = '' +
+    '<div class="toolbar">' +
+      '<button class="btn-primary" onclick="openModal()">＋ Nuevo colaborador</button>' +
+      '<input class="search-input" id="searchInput" type="text" placeholder="Buscar por nombre, apellido o correo…" oninput="onSearch(this.value)" value="' + escapeAttr(searchQuery) + '">' +
+      '<button class="btn-secondary" onclick="loadColaboradores()">↻ Actualizar</button>' +
+    '</div>' +
+    '<div class="filter-pills" id="filterPills"></div>' +
+    '<div id="colabList"></div>';
+  document.getElementById('viewContainer').innerHTML = html;
+  renderFilterPills();
+  renderList();
+}
+
+function renderFilterPills() {
+  const counts = countByEstado();
+  const total = colaboradores.length;
+  const pills = [{ key: 'todos', label: 'Todos', count: total }].concat(
+    Object.keys(ESTADOS).map(function (key) { return { key: key, label: ESTADOS[key], count: counts[key] || 0 }; })
+  );
+  document.getElementById('filterPills').innerHTML = pills.map(function (p) {
+    return '<button class="pill ' + (filterEstado === p.key ? 'active' : '') + '" onclick="onFilterEstado(\'' + p.key + '\')">' +
+      p.label + ' <span class="count">' + p.count + '</span></button>';
+  }).join('');
+}
+
+function filteredColaboradores() {
+  return colaboradores.filter(function (c) {
+    if (filterEstado !== 'todos' && c.estado !== filterEstado) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const haystack = [c.nombre, c.apellido, c.email].filter(Boolean).join(' ').toLowerCase();
+      if (haystack.indexOf(q) === -1) return false;
+    }
+    return true;
+  }).sort(function (a, b) { return (a.nombre || '').localeCompare(b.nombre || ''); });
+}
+
+function renderList() {
+  const list = filteredColaboradores();
+  const container = document.getElementById('colabList');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state">No hay colaboradores que coincidan con el filtro.</div>';
+    return;
+  }
+  container.innerHTML = list.map(renderCardRow).join('');
+}
+
+function renderCardRow(c) {
+  const saldo = saldoVacaciones(c);
+  return '' +
+  '<div class="colab-card ' + c.estado + '" onclick="openProfile(\'' + c.id + '\')">' +
+    '<div class="colab-row">' +
+      '<div class="colab-avatar">' + initials(c.nombre, c.apellido) + '</div>' +
+      '<div><div class="colab-name">' + esc(c.nombre + ' ' + c.apellido) + '</div><div class="colab-email">' + esc(c.email || '—') + '</div></div>' +
+      '<div class="colab-fecha">' + fmtDateShort(c.fechaIngreso) + '</div>' +
+      '<div class="colab-saldo"><div class="colab-saldo-val">' + fmtDias(saldo) + '</div><div class="colab-saldo-lbl">Disponibles</div></div>' +
+      '<select class="estado-select ' + c.estado + '" onclick="event.stopPropagation()" onchange="updateEstado(\'' + c.id + '\', this.value)">' +
+        Object.keys(ESTADOS).map(function (k) { return '<option value="' + k + '"' + (k === c.estado ? ' selected' : '') + '>' + ESTADOS[k] + '</option>'; }).join('') +
+      '</select>' +
+      '<button class="icon-btn" onclick="event.stopPropagation();deleteColaborador(\'' + c.id + '\')" title="Eliminar colaborador">🗑</button>' +
+      '<span class="row-arrow">›</span>' +
+    '</div>' +
+  '</div>';
+}
+
+// ==================== INTERACTIONS: LIST ====================
+function onFilterEstado(key) { filterEstado = key; renderFilterPills(); renderList(); }
+function onSearch(val) { searchQuery = val; renderList(); }
+
+async function updateEstado(id, nuevoEstado) {
+  const c = colaboradores.find(function (x) { return x.id === id; });
+  if (!c) return;
+  c.estado = nuevoEstado;
+  renderApp();
+  await saveColaborador(c);
+}
+
+function deleteColaborador(id) {
+  const c = colaboradores.find(function (x) { return x.id === id; });
+  if (!c) return;
+  askConfirm('¿Estás seguro que quieres eliminar a ' + c.nombre + ' ' + c.apellido + '?', async function () {
+    colaboradores = colaboradores.filter(function (x) { return x.id !== id; });
+    if (currentView === 'profile' && perfilColabId === id) {
+      currentView = 'list';
+      perfilColabId = null;
+    }
+    renderApp();
+    await deleteColaboradorRemote(id);
+  });
+}
+
+// ==================== MODAL DE CONFIRMACIÓN ====================
+function askConfirm(message, onConfirm) {
+  document.getElementById('confirmModalMessage').textContent = message;
+  pendingConfirmAction = onConfirm;
+  document.getElementById('confirmModalOverlay').classList.remove('hidden');
+}
+function closeConfirmModal() {
+  document.getElementById('confirmModalOverlay').classList.add('hidden');
+  pendingConfirmAction = null;
+}
+async function confirmModalAction() {
+  const action = pendingConfirmAction;
+  closeConfirmModal();
+  if (action) await action();
+}
+
+// ==================== MODAL / CREAR ====================
+function openModal() {
+  ['m_nombre', 'm_apellido', 'm_email', 'm_telefono', 'm_fechaIngreso'].forEach(function (id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('m_estado').value = 'activo';
+  document.getElementById('modalOverlay').classList.remove('hidden');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.add('hidden'); }
+
+async function crearColaborador() {
+  const nombre = document.getElementById('m_nombre').value.trim();
+  const apellido = document.getElementById('m_apellido').value.trim();
+  const fechaIngreso = document.getElementById('m_fechaIngreso').value;
+  if (!nombre || !apellido) { alert('Nombre y apellido son obligatorios'); return; }
+  if (!fechaIngreso) { alert('La fecha de ingreso es obligatoria'); return; }
+
+  const colab = {
+    id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    nombre: nombre,
+    apellido: apellido,
+    email: document.getElementById('m_email').value.trim(),
+    telefono: document.getElementById('m_telefono').value.trim(),
+    fechaIngreso: fechaIngreso,
+    estado: document.getElementById('m_estado').value,
+    eventos: []
+  };
+
+  colaboradores.push(colab);
+  closeModal();
+  renderApp();
+  await saveColaborador(colab);
+}
+
+// ==================== RENDER: PROFILE VIEW ====================
+function openProfile(id) {
+  perfilColabId = id;
+  currentView = 'profile';
+  showEventoForm = false;
+  eventoDraft = null;
+  eventoFeriados = new Set();
+  renderApp();
+  window.scrollTo(0, 0);
+}
+function backToList() {
+  currentView = 'list';
+  perfilColabId = null;
+  renderApp();
+}
+
+function renderProfileView() {
+  const c = colaboradores.find(function (x) { return x.id === perfilColabId; });
+  if (!c) { backToList(); return; }
+  const saldo = saldoVacaciones(c);
+  const ganados = diasGanados(c);
+  const tomados = diasTomados(c);
+
+  const html = '' +
+    '<button class="back-btn" onclick="backToList()">← Volver al listado</button>' +
+    '<div class="profile-summary">' +
+      '<div class="profile-top">' +
+        '<div class="profile-avatar">' + initials(c.nombre, c.apellido) + '</div>' +
+        '<div>' +
+          '<div class="profile-name">' + esc(c.nombre + ' ' + c.apellido) + '</div>' +
+          '<div class="profile-sub">Ingresó el ' + fmtDateShort(c.fechaIngreso) + ' · Ganados: ' + fmtDias(ganados) + ' · Tomados: ' + fmtDias(tomados) + '</div>' +
+        '</div>' +
+        '<div class="profile-saldo-box">' +
+          '<div class="profile-saldo-val">' + fmtDias(saldo) + '</div>' +
+          '<div class="profile-saldo-lbl">Saldo disponible</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="profile-fields-grid">' +
+        profileFieldStatic(c, 'nombre', 'Nombre') +
+        profileFieldStatic(c, 'apellido', 'Apellido') +
+        profileFieldStatic(c, 'email', 'Correo') +
+        profileFieldStatic(c, 'telefono', 'Teléfono') +
+        profileFieldStatic(c, 'fechaIngreso', 'Fecha de ingreso', fmtDateShort) +
+        '<div class="field"><label>Estado</label><select onchange="updateEstado(\'' + c.id + '\', this.value)">' +
+          Object.keys(ESTADOS).map(function (k) { return '<option value="' + k + '"' + (k === c.estado ? ' selected' : '') + '>' + ESTADOS[k] + '</option>'; }).join('') +
+        '</select></div>' +
+      '</div>' +
+      '<div class="profile-actions"><button class="btn-ghost-red" onclick="deleteColaborador(\'' + c.id + '\')">Eliminar colaborador</button></div>' +
+    '</div>' +
+
+    '<div class="historial-header">' +
+      '<div class="historial-title">Historial</div>' +
+      '<button class="btn-primary" onclick="toggleEventoForm()">' + (showEventoForm ? '✕ Cerrar' : '＋ Agregar evento') + '</button>' +
+    '</div>' +
+    '<div id="eventoFormContainer"></div>' +
+    '<div class="evento-list" id="eventoList"></div>';
+
+  document.getElementById('viewContainer').innerHTML = html;
+  renderEventoForm();
+  renderEventoList(c);
+}
+
+function profileFieldStatic(c, key, label, formatter) {
+  const raw = c[key];
+  const val = formatter ? formatter(raw) : (raw || '—');
+  return '<div class="field"><label>' + label + '</label><div class="field-static">' + esc(val) + '</div></div>';
+}
+
+// ==================== HISTORIAL: FORM DE NUEVO EVENTO ====================
+function toggleEventoForm() {
+  showEventoForm = !showEventoForm;
+  if (showEventoForm) {
+    eventoDraft = { tipo: 'vacaciones', fechaInicio: '', fechaFin: '', autorizadoPor: 'NW', notas: '' };
+    eventoFeriados = new Set();
+  }
+  renderProfileView();
+}
+
+function updateEventoDraft(key, value) {
+  eventoDraft[key] = value;
+  if (key === 'fechaInicio' || key === 'fechaFin' || key === 'tipo') {
+    eventoFeriados = new Set(); // al cambiar rango o tipo, se reinician los feriados marcados
+  }
+  renderEventoForm();
+}
+
+function toggleFeriado(iso) {
+  if (eventoFeriados.has(iso)) eventoFeriados.delete(iso); else eventoFeriados.add(iso);
+  renderEventoForm();
+}
+
+function renderEventoForm() {
+  const container = document.getElementById('eventoFormContainer');
+  if (!container) return;
+  if (!showEventoForm || !eventoDraft) { container.innerHTML = ''; return; }
+
+  const habilesEnRango = weekdaysInRange(eventoDraft.fechaInicio, eventoDraft.fechaFin);
+  const diasADescontar = habilesEnRango.filter(function (d) { return !eventoFeriados.has(d); }).length;
+
+  let picker = '';
+  if (eventoDraft.tipo === 'vacaciones' && habilesEnRango.length > 0) {
+    picker = '<div class="dias-picker">' +
+      '<div class="dias-picker-title">Marca los feriados dentro del rango (se excluyen del descuento)</div>' +
+      habilesEnRango.map(function (d) {
+        const checked = eventoFeriados.has(d) ? ' checked' : '';
+        return '<label class="dias-picker-item"><input type="checkbox"' + checked + ' onchange="toggleFeriado(\'' + d + '\')"> ' + fmtDateShort(d) + (eventoFeriados.has(d) ? ' — feriado' : '') + '</label>';
+      }).join('') +
+      '<div class="dias-count">Días hábiles a descontar: ' + diasADescontar + '</div>' +
+    '</div>';
+  }
+
+  container.innerHTML = '' +
+    '<div class="evento-form">' +
+      '<div class="evento-form-grid">' +
+        '<div class="field"><label>Tipo de evento</label><select onchange="updateEventoDraft(\'tipo\', this.value)">' +
+          Object.keys(EVENTO_TIPOS).map(function (k) { return '<option value="' + k + '"' + (k === eventoDraft.tipo ? ' selected' : '') + '>' + EVENTO_TIPOS[k] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="field"><label>Fecha inicio</label><input type="date" value="' + escapeAttr(eventoDraft.fechaInicio) + '" onchange="updateEventoDraft(\'fechaInicio\', this.value)"></div>' +
+        '<div class="field"><label>Fecha fin</label><input type="date" value="' + escapeAttr(eventoDraft.fechaFin) + '" onchange="updateEventoDraft(\'fechaFin\', this.value)"></div>' +
+        '<div class="field"><label>Autorizado por</label><select onchange="updateEventoDraft(\'autorizadoPor\', this.value)">' +
+          Object.keys(AUTORIZADORES).map(function (k) { return '<option value="' + k + '"' + (k === eventoDraft.autorizadoPor ? ' selected' : '') + '>' + AUTORIZADORES[k] + '</option>'; }).join('') +
+        '</select></div>' +
+        '<div class="field wide"><label>Notas (opcional)</label><input type="text" value="' + escapeAttr(eventoDraft.notas) + '" onchange="updateEventoDraft(\'notas\', this.value)" placeholder="Ej: motivo, observaciones…"></div>' +
+      '</div>' +
+      picker +
+      '<div class="evento-form-footer">' +
+        '<button class="btn-secondary" onclick="toggleEventoForm()">Cancelar</button>' +
+        '<button class="btn-primary" onclick="guardarEvento()">Guardar evento</button>' +
+      '</div>' +
+    '</div>';
+}
+
+async function guardarEvento() {
+  if (!eventoDraft.fechaInicio || !eventoDraft.fechaFin) { alert('Selecciona fecha de inicio y fin'); return; }
+  if (new Date(eventoDraft.fechaFin) < new Date(eventoDraft.fechaInicio)) { alert('La fecha de fin no puede ser anterior a la de inicio'); return; }
+
+  const c = colaboradores.find(function (x) { return x.id === perfilColabId; });
+  if (!c) return;
+
+  let diasHabiles = null;
+  if (eventoDraft.tipo === 'vacaciones') {
+    const habiles = weekdaysInRange(eventoDraft.fechaInicio, eventoDraft.fechaFin);
+    diasHabiles = habiles.filter(function (d) { return !eventoFeriados.has(d); }).length;
+  }
+
+  const evento = {
+    id: 'ev_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    tipo: eventoDraft.tipo,
+    fechaInicio: eventoDraft.fechaInicio,
+    fechaFin: eventoDraft.fechaFin,
+    diasHabiles: diasHabiles,
+    autorizadoPor: eventoDraft.autorizadoPor,
+    notas: eventoDraft.notas,
+    creadoEn: new Date().toISOString()
+  };
+
+  c.eventos = c.eventos || [];
+  c.eventos.push(evento);
+  showEventoForm = false;
+  eventoDraft = null;
+  eventoFeriados = new Set();
+  renderApp();
+  await saveColaborador(c);
+}
+
+function renderEventoList(c) {
+  const el = document.getElementById('eventoList');
+  const eventos = (c.eventos || []).slice().sort(function (a, b) { return b.fechaInicio.localeCompare(a.fechaInicio); });
+  if (eventos.length === 0) {
+    el.innerHTML = '<div class="empty-state">Todavía no hay eventos registrados para este colaborador.</div>';
+    return;
+  }
+  el.innerHTML = eventos.map(function (e) {
+    const diasTxt = (e.tipo === 'vacaciones' && typeof e.diasHabiles === 'number')
+      ? e.diasHabiles + ' día' + (e.diasHabiles === 1 ? '' : 's') + ' hábil' + (e.diasHabiles === 1 ? '' : 'es') + ' descontados'
+      : '';
+    return '' +
+      '<div class="evento-item">' +
+        '<span class="evento-badge ' + e.tipo + '">' + EVENTO_TIPOS[e.tipo] + '</span>' +
+        '<div class="evento-info">' +
+          '<div class="evento-fechas">' + fmtDateShort(e.fechaInicio) + ' → ' + fmtDateShort(e.fechaFin) + '</div>' +
+          (diasTxt ? '<div class="evento-dias">' + diasTxt + '</div>' : '') +
+          (e.notas ? '<div class="evento-notas">' + esc(e.notas) + '</div>' : '') +
+        '</div>' +
+        '<span class="evento-autor">Autorizado por: ' + (AUTORIZADORES[e.autorizadoPor] || e.autorizadoPor || '—') + '</span>' +
+        '<button class="icon-btn" onclick="eliminarEvento(\'' + e.id + '\')" title="Eliminar evento">🗑</button>' +
+      '</div>';
+  }).join('');
+}
+
+function eliminarEvento(eventoId) {
+  const c = colaboradores.find(function (x) { return x.id === perfilColabId; });
+  if (!c) return;
+  askConfirm('¿Estás seguro que quieres eliminar este evento del historial?', async function () {
+    c.eventos = (c.eventos || []).filter(function (e) { return e.id !== eventoId; });
+    renderApp();
+    await saveColaborador(c);
+  });
+}
+
+// ==================== UTILS ====================
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; });
+}
+function escapeAttr(str) {
+  if (!str) return '';
+  return String(str).replace(/"/g, '&quot;');
+}
+</script>
+</body>
+</html>
