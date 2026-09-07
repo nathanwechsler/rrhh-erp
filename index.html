@@ -728,6 +728,25 @@ function saldoTotal(colab) {
   return saldoLegal(colab) + saldoCanje(colab);
 }
 
+// Mismo cálculo que saldoTotal(), pero anclado al momento de un evento de vacaciones
+// específico en vez de a "hoy": solo cuenta los eventos anteriores a él (por fecha de
+// inicio) y los días ganados hasta la fecha de inicio de ese evento. Se usa para el
+// comprobante en PDF ("saldo antes/después de la solicitud").
+function saldosAlMomento(colab, evento) {
+  const eventos = (colab.eventos || []).slice().sort(function (a, b) { return a.fechaInicio.localeCompare(b.fechaInicio); });
+  const idx = eventos.findIndex(function (e) { return e.id === evento.id; });
+  const eventosAntes = idx === -1 ? eventos : eventos.slice(0, idx);
+  const colabAntes = Object.assign({}, colab, { eventos: eventosAntes });
+
+  const ganado = diasGanados(colabAntes, evento.fechaInicio);
+  const canjeGanado = diasCanjeGanados(colabAntes);
+  const tomado = diasTomados(colabAntes);
+  const remanenteTomado = Math.max(0, tomado - canjeGanado);
+  const antes = (ganado - remanenteTomado) + Math.max(0, canjeGanado - tomado);
+  const despues = antes - (typeof evento.diasHabiles === 'number' ? evento.diasHabiles : 0);
+  return { antes: antes, despues: despues };
+}
+
 function fmtDias(n) {
   return (Math.round(n * 10) / 10).toString().replace('.', ',') + ' días';
 }
@@ -751,6 +770,17 @@ function fmtDateShort(iso) {
   const d = new Date(iso + 'T00:00:00');
   if (isNaN(d.getTime())) return iso;
   return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// "Lunes 14-09-2026" — usado en el comprobante de vacaciones en PDF.
+function fmtDateLargo(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return iso;
+  const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return dias[d.getDay()] + ' ' + dd + '-' + mm + '-' + d.getFullYear();
 }
 
 // ==================== RENDER: SHELL ====================
@@ -1211,10 +1241,62 @@ function renderEventoList(c) {
           (e.notas ? '<div class="evento-notas">' + esc(e.notas) + '</div>' : '') +
         '</div>' +
         '<span class="evento-autor">Autorizado por: ' + (AUTORIZADORES[e.autorizadoPor] || e.autorizadoPor || '—') + '</span>' +
+        (e.tipo === 'vacaciones' ? renderComprobanteControl(e) : '') +
         '<button class="icon-btn" onclick="eliminarEvento(\'' + e.id + '\')" title="Eliminar evento">🗑</button>' +
         (e.tipo === 'vacaciones' ? renderDocumentosControl(e) : '') +
       '</div>';
   }).join('');
+}
+
+function renderComprobanteControl(e) {
+  const comp = e.comprobanteVacaciones;
+  if (comp) {
+    return '<a class="btn-primary" style="text-decoration:none;" href="' + comp.url + '" target="_blank" rel="noopener">📄 Ver comprobante</a>';
+  }
+  return '<button class="btn-primary" id="comprobanteBtn_' + e.id + '" onclick="generarComprobanteVacaciones(\'' + e.id + '\')">🖨️ Generar comprobante</button>';
+}
+
+async function generarComprobanteVacaciones(eventoId) {
+  const c = colaboradores.find(function (x) { return x.id === perfilColabId; });
+  const evento = c && (c.eventos || []).find(function (ev) { return ev.id === eventoId; });
+  if (!c || !evento) return;
+
+  if (!backendConfigurado()) {
+    alert('Para generar el comprobante primero hay que conectar el backend (Apps Script).');
+    return;
+  }
+
+  const btn = document.getElementById('comprobanteBtn_' + eventoId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Generando…'; }
+
+  try {
+    const saldos = saldosAlMomento(c, evento);
+    const result = await apiCall('generar_comprobante_vacaciones', {
+      nombreCompleto: (c.nombre + ' ' + (c.apellido || '')).trim(),
+      fechaIngresoTexto: fmtDateShort(c.fechaIngreso),
+      correo: c.email || '',
+      fechaInicioISO: evento.fechaInicio,
+      desdeTexto: fmtDateLargo(evento.fechaInicio),
+      hastaTexto: fmtDateLargo(evento.fechaFin),
+      diasHabiles: evento.diasHabiles,
+      saldoAntes: saldos.antes,
+      saldoDespues: saldos.despues
+    });
+    if (manejarSesionVencida(result)) return;
+    if (result && result.ok) {
+      evento.comprobanteVacaciones = result.comprobante;
+      renderEventoList(c);
+      await saveColaborador(c);
+      window.open(result.comprobante.url, '_blank');
+    } else {
+      alert('No se pudo generar el comprobante' + (result && result.error ? ': ' + result.error : '.'));
+      renderEventoList(c);
+    }
+  } catch (err) {
+    console.error(err);
+    alert('No se pudo generar el comprobante. Revisa tu conexión e inténtalo de nuevo.');
+    renderEventoList(c);
+  }
 }
 
 function renderDocumentosControl(e) {
