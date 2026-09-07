@@ -449,6 +449,7 @@ const DIAS_POR_MES = 1.25;
 // ==================== STATE ====================
 let colaboradores = [];
 let currentUser = null;
+let googleIdToken = null; // token crudo del login de Google, se manda al backend para que lo verifique con Google
 let expandedIds = new Set();
 let filterEstado = 'todos';
 let searchQuery = '';
@@ -534,6 +535,7 @@ function handleCredentialResponse(response) {
   }
 
   currentUser = { name: payload.name, email: email, picture: payload.picture };
+  googleIdToken = response.credential; // se lo pasamos al backend en cada llamada para que Google lo verifique
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   renderUserBox();
@@ -542,6 +544,7 @@ function handleCredentialResponse(response) {
 
 function logout() {
   currentUser = null;
+  googleIdToken = null;
   google.accounts.id.disableAutoSelect();
   document.getElementById('app').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
@@ -572,17 +575,24 @@ function backendConfigurado() {
   return CONFIG.APPS_SCRIPT_URL && CONFIG.APPS_SCRIPT_URL.indexOf('PON_AQUI') === -1;
 }
 
-async function apiGet(action) {
-  const res = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=' + action);
+async function apiCall(action, payload) {
+  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(Object.assign({ action: action, idToken: googleIdToken }, payload || {}))
+  });
   return res.json();
 }
 
-async function apiPost(action, payload) {
-  const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
-    method: 'POST',
-    body: JSON.stringify(Object.assign({ action: action }, payload))
-  });
-  return res.json();
+// Si el backend dice que el token ya no es válido (expiró, o el login se cerró en
+// otro lado), no tiene sentido seguir mostrando error tras error — recargamos para
+// que vuelva a loguearse. Devuelve true si tuvo que cortar el flujo actual.
+function manejarSesionVencida(result) {
+  if (result && result.ok === false && result.error === 'SESION_INVALIDA') {
+    alert('Tu sesión de Google expiró o no es válida. La página se va a recargar para que inicies sesión de nuevo.');
+    window.location.reload();
+    return true;
+  }
+  return false;
 }
 
 async function loadColaboradores() {
@@ -593,7 +603,8 @@ async function loadColaboradores() {
     return;
   }
   try {
-    const result = await apiGet('get_colaboradores');
+    const result = await apiCall('get_colaboradores');
+    if (manejarSesionVencida(result)) return;
     colaboradores = (result && result.data) || [];
     usingMockData = false;
   } catch (err) {
@@ -613,12 +624,14 @@ function renderDataModeNotice() {
 
 async function saveColaborador(colab) {
   if (usingMockData) return;
-  await apiPost('save_colaborador', { colaborador: colab });
+  const result = await apiCall('save_colaborador', { colaborador: colab });
+  manejarSesionVencida(result);
 }
 
 async function deleteColaboradorRemote(id) {
   if (usingMockData) return;
-  await apiPost('delete_colaborador', { id: id });
+  const result = await apiCall('delete_colaborador', { id: id });
+  manejarSesionVencida(result);
 }
 
 // ==================== CORREO DE LIQUIDACIÓN DE SUELDO ====================
@@ -1147,11 +1160,12 @@ async function guardarEvento() {
       if (btn) { btn.disabled = true; btn.textContent = 'Subiendo documento…'; }
       try {
         const base64 = await fileToBase64(archivo);
-        const result = await apiPost('upload_documento', {
+        const result = await apiCall('upload_documento', {
           fileName: archivo.name,
           mimeType: archivo.type || 'application/octet-stream',
           base64Data: base64
         });
+        if (manejarSesionVencida(result)) return;
         if (result && result.ok) {
           evento.documentos = [result.documento];
         } else {
@@ -1247,11 +1261,12 @@ async function onFileAgregar(eventoId, inputEl) {
 
   try {
     const base64 = await fileToBase64(file);
-    const result = await apiPost('upload_documento', {
+    const result = await apiCall('upload_documento', {
       fileName: file.name,
       mimeType: file.type || 'application/octet-stream',
       base64Data: base64
     });
+    if (manejarSesionVencida(result)) return;
     if (result && result.ok) {
       evento.documentos = evento.documentos || [];
       evento.documentos.push(result.documento);
@@ -1275,7 +1290,8 @@ function eliminarDocumento(eventoId, docId) {
     renderEventoList(c);
     await saveColaborador(c);
     if (backendConfigurado()) {
-      await apiPost('delete_documento', { fileId: docId });
+      const result = await apiCall('delete_documento', { fileId: docId });
+      manejarSesionVencida(result);
     }
   });
 }
@@ -1302,4 +1318,3 @@ function escapeAttr(str) {
 </script>
 </body>
 </html>
-
