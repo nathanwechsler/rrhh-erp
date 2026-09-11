@@ -197,6 +197,12 @@
     font-size: 13px; color: var(--text); padding: 8px 10px;
     background: var(--gray-mid); border-radius: 8px; border: 1px solid transparent;
   }
+  .field-editable {
+    font-size: 13px; color: var(--text); padding: 8px 10px; width: 100%; box-sizing: border-box;
+    background: var(--gray-mid); border-radius: 8px; border: 1px solid transparent;
+    font-family: 'Inter', sans-serif;
+  }
+  .field-editable:focus { outline: none; border-color: var(--orange); }
   .field.wide { grid-column: span 2; }
 
   /* ---------- MODAL ---------- */
@@ -892,6 +898,13 @@ async function updateEstado(id, nuevoEstado) {
   await saveColaborador(c);
 }
 
+async function updateColaboradorField(id, key, value) {
+  const c = colaboradores.find(function (x) { return x.id === id; });
+  if (!c) return;
+  c[key] = value;
+  await saveColaborador(c);
+}
+
 function deleteColaborador(id) {
   const c = colaboradores.find(function (x) { return x.id === id; });
   if (!c) return;
@@ -1006,6 +1019,9 @@ function renderProfileView() {
         '<div class="field"><label>Estado</label><select onchange="updateEstado(\'' + c.id + '\', this.value)">' +
           Object.keys(ESTADOS).map(function (k) { return '<option value="' + k + '"' + (k === c.estado ? ' selected' : '') + '>' + ESTADOS[k] + '</option>'; }).join('') +
         '</select></div>' +
+        profileFieldEditable(c, 'contactoEmergenciaNombre', 'Contacto emergencia nombre') +
+        profileFieldEditable(c, 'contactoEmergenciaRelacion', 'Contacto emergencia relación') +
+        profileFieldEditable(c, 'contactoEmergenciaTelefono', 'Contacto emergencia teléfono') +
       '</div>' +
       '<div class="profile-actions">' +
         '<button class="btn-primary" onclick="enviarLiquidacion(\'' + c.id + '\')">✉️ Enviar correo de liquidación de sueldo</button>' +
@@ -1029,6 +1045,11 @@ function profileFieldStatic(c, key, label, formatter) {
   const raw = c[key];
   const val = formatter ? formatter(raw) : (raw || '—');
   return '<div class="field"><label>' + label + '</label><div class="field-static">' + esc(val) + '</div></div>';
+}
+
+function profileFieldEditable(c, key, label) {
+  return '<div class="field"><label>' + label + '</label>' +
+    '<input class="field-editable" type="text" value="' + escapeAttr(c[key]) + '" onchange="updateColaboradorField(\'' + c.id + '\', \'' + key + '\', this.value)"></div>';
 }
 
 // ==================== HISTORIAL: FORM DE NUEVO EVENTO ====================
